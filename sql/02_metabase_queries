@@ -1,0 +1,284 @@
+--Below are SQL queries for questions used on the "Airline CSAT dashboard"
+
+-- Arrival Delay Question/SQL Query
+SELECT
+  AVG("source"."Arrival Delay") AS "avg"
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
+
+  --Departure Delay Buckets vs Satisfaction
+  SELECT
+  "source"."dep_bucket" AS "dep_bucket",
+  AVG("source"."is_satisfied") * 100 AS "Departure Delay Buckets vs Satisfaction"
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
+GROUP BY
+  "source"."dep_bucket"
+ORDER BY
+  "source"."dep_bucket" ASC
+
+--Distance Bands & Satisfaction
+SELECT
+  "source"."distance_band" AS "distance_band",
+  AVG("source"."is_satisfied") * 100 AS "Distance Bands & Satisfaction"
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
+GROUP BY
+  "source"."distance_band"
+ORDER BY
+  "source"."distance_band" ASC
+
+--On‑time Departure % (≤ 15 min)
+SELECT
+  100 * AVG(
+    CASE
+      WHEN "source"."Departure Delay" <= 15 THEN 1
+      ELSE 0
+    END
+  ) AS "On‑time Departure % (≤ 15 min)"
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
+
+  --Overall Satisfaction %
+  SELECT
+  AVG("source"."is_satisfied") * 100 AS "Overall Satisfaction %."
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
+
+--Satisfaction by Travel Type × Class
+SELECT
+  "source"."Type of Travel" AS "Type of Travel",
+  "source"."Class" AS "Class",
+  AVG("source"."is_satisfied") * 100 AS "Overall Satisfaction %"
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
+GROUP BY
+  "source"."Type of Travel",
+  "source"."Class"
+ORDER BY
+  "source"."Type of Travel" ASC,
+  "source"."Class" ASC
+
+  --Service Drivers Comparison
+  SELECT
+  "source"."group_name" AS "group_name",
+  AVG("source"."Ease of Online Booking") AS "avg",
+  AVG("source"."Check-in Service") AS "avg_2",
+  AVG("source"."Online Boarding") AS "avg_3",
+  AVG("source"."Seat Comfort") AS "avg_4",
+  AVG("source"."Food and Drink") AS "avg_5",
+  AVG("source"."In-flight Service") AS "avg_6",
+  AVG("source"."In-flight Wifi Service") AS "avg_7",
+  AVG("source"."In-flight Entertainment") AS "avg_8"
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
+GROUP BY
+  "source"."group_name"
+ORDER BY
+  "source"."group_name" ASC
+
+--Total flights
+SELECT
+  COUNT(*) AS "count"
+FROM
+  (
+    SELECT
+      *,
+      CASE
+        WHEN "Flight Distance" < 500 THEN '<500'
+        WHEN "Flight Distance" < 1500 THEN '500-1499'
+        WHEN "Flight Distance" < 3000 THEN '1500-2999'
+        ELSE '3000+'
+      END AS distance_band,
+      CASE
+        WHEN COALESCE("Departure Delay", 0) <= 15 THEN '0-15'
+        WHEN "Departure Delay" <= 60 THEN '16-60'
+        WHEN "Departure Delay" <= 180 THEN '61-180'
+        ELSE '180+'
+      END AS dep_bucket,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 1.0
+        ELSE 0.0
+      END AS is_satisfied,
+      CASE
+        WHEN LOWER(TRIM("Satisfaction")) LIKE 'satisfied%' THEN 'satisfied'
+        ELSE 'neutral/dissatisfied'
+      END AS group_name
+    FROM
+      airline_satisfaction
+  ) AS "source"
