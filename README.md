@@ -1,5 +1,5 @@
 
-# ✈️ Metabase Mini Project — Airline Passenger Satisfaction (Stage 1)
+# ✈️ Metabase Project — Airline Passenger Satisfaction 
 ---
 [![Python](https://img.shields.io/badge/Python-3.9-blue.svg)]()
 [![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-orange.svg)]()
